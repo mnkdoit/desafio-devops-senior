@@ -11,7 +11,7 @@ ENV FLASK_APP bookmanager.py
 
 COPY ./bookmanager.py .
 COPY ./bookdatabase.db .
-COPY ./templates .
+COPY ./templates ./templates
 
 EXPOSE 5000
 
