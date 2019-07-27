@@ -24,7 +24,7 @@ services:
 
 #Api-gateway
   kong-migration:
-    image: kong:latest
+    image: 'kong:latest'
     command: "kong migrations bootstrap"
     restart: on-failure
     environment:
@@ -67,11 +67,10 @@ services:
       timeout: 2s
       retries: 15
     depends_on:
-      - kong-database
       - kong-migration
 
   konga-prepare:
-    image: pantsel/konga:next
+    image: 'pantsel/konga:next'
     command: "-c prepare -a postgres -u postgresql://kong:kong@kong-database:5432/konga_db"
     restart: on-failure
     links:
@@ -80,7 +79,7 @@ services:
       - kong-database
 
   konga:
-    image: pantsel/konga:next
+    image: 'pantsel/konga:next'
     restart: always
     environment:
       DB_ADAPTER: postgres
