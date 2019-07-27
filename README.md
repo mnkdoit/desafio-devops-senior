@@ -1,21 +1,21 @@
-# Bem vindo ao desafio DevOps da Engineering do Brasil.
+# Resposta ao Desafio DevOps Engineering do Brasil
 
-Neste desafio queremos validar seus conhecimentos como DevOps, para tanto temos uma app em Python3, esse app é um CRUD de uma base de livros, esse app usa SQLite e queremos agora usar um banco de dados, além disso queremos que esse app tenha um API Gateway e uma rota seja exposta para consumo. 
+## Para iniciar o stack da aplicação:
+* Necessário ter Docker Instalado na máquina;
+* Execute "docker-compose up", apartir da pasta do repositório;
+* Após o stack estar em execução execute "configure-route.sh", que será configurada a rota "htt://<endereço>/desafio" para a aplicação "bookmanager";
+* Prontinho!
+    
+## Acessando a aplicação:
+* Para acessar a aplicação é necessário utilizar autenticação por chave (chave -> 20644b66-36a8-4c46-9460-5a87247a3e3d em: htt://<endereço>:8001/desafio
+* Você também pode acessar o Konga para administrador o api-gateway, bastando apenas criar seu usuário e senha em htt://<endereço>/:1337
+* Para administrar o Kong via API pasta enviar as requisições para http://<endereço>:8000/ - Guia completo em: [Kong](https://docs.konghq.com/1.2.x/admin-api/)
 
+## Como funciona:
+####Docker:
+É um projeto de software livre que ajuda a automatizar aplicativos autossuficientes e portateis, que independem do ambiente externo.
+>A container is a standard unit of software that packages up code and all its dependencies so the application runs quickly and reliably from one computing environment to another
+https://www.docker.com/resources/what-container
 
-Esperamos que ao final você nos gere uma imagem Docker contendo o código dessa app funcional.
-
-0. Faça um fork desse projeto, commit todas suas mudanças em seu projeto e nos envie o link do seu fork, para avaliação.
-1. Como falado o app usa SQLite e precisamos incluir uma base de dados, você decide qual será a base usada, o importante é que a applicação funcione.
-2. O API Gateway desse desafio é o Kong API Gateway https://docs.konghq.com
-3. Faça o deploy do Kong API Gateway
-4. Configure uma rota no Kong API Gateway para quando fizermos uma request com o path /desafio, a requisição seja enviada ao app
-5. Essa API será pública, mas terá autenticação via chave, crie uma autenticação via Key-Auth no Kong API Gateway
-
-## Entregáveis:
-Como entregáveis esperamos um arquivo Dockerfile, um arquivo para subir os containers (docker-compose ou docker-stack ou deployment k8s), um script (python ou shell) com as chamadas para a criação de uma API e um README.md explicando como tudo isso funciona.
-
-## Você ganha pontos extras se:
-Se fizer um script que automatize todo esse processo ou faça alguma mudança no app.
-Se fizer melhorias no código, como melhrorias entendendemos desde refatorar o código, até criar uma interface web mais bonita.
-Se fizer monitoração.
+####Dockercompose:
+Dockercompose é uma ferramenta utilizada para entregar aplicações "multi-container". Para que seja executado, deve-se criar uma receita em [YAML](https://yaml.org/), chamado "docker-compose.yaml" ou "docker-compose.yml". Neste arquivo há a configuração do nosso stack da aplicação (Com a configuração das máquinas, sequência de 'subida', variáveis de ambiente e etc...). Ao executar 'docker-compose up' é feita uma validação desse arquivo, em seguida são iniciadas instâncias de máquinas na sequência estabelecida.

@@ -1,6 +1,6 @@
 curl -i -X POST --url http://localhost:8001/services/ --data 'name=bookmanager' --data 'url=http://book-manager:5000/'
 
-curl -i -X POST --url http://localhost:8001/services/bookmanager/routes/ --data 'methods[]=GET' --data 'hosts[]=host.com' --data 'paths[]=/desafio'
+curl -i -X POST --url http://localhost:8001/services/bookmanager/routes/ --data 'methods[]=GET' --data 'paths[]=/desafio'
 
 curl -i -X POST --url http://localhost:8001/services/bookmanager/plugins/ --data 'name=key-auth' --data 'config.hide_credentials=false'
 
