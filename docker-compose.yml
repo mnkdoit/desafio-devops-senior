@@ -23,18 +23,18 @@ services:
       - kong-database-volume:/var/lib/postgresql/data/pgdata
 
 #ELK
-#  elk:
-#    image: sebp/elk
-#    environment:
-#      ELASTICSEARCH_START: 1
-#      LOGSTASH_START: 1
-#      KIBANA_START: 1
-#    ports:
-#      - "5601:5601"
-#      - "9200:9200"
-#      - "5044:5044"
-#    volumes:
-#      - elk-data:/var/lib/elasticsearch
+  elk:
+    image: sebp/elk
+    environment:
+      ELASTICSEARCH_START: 1
+      LOGSTASH_START: 1
+      KIBANA_START: 1
+    ports:
+      - "5601:5601"
+      - "9200:9200"
+      - "5044:5044"
+    volumes:
+      - elk-data:/var/lib/elasticsearch
 
 #KONG
   kong-migration:
@@ -89,6 +89,7 @@ services:
     restart: on-failure
     links:
       - kong-database
+      - konga
     depends_on:
       - kong-database
 
@@ -120,5 +121,5 @@ services:
 
 volumes:
   kong-database-volume:    
-#  elk-data:
+  elk-data:
   bookmanager-database-volume:  
