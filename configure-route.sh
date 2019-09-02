@@ -1,25 +1,12 @@
 echo "\nRunning Kong Auto Configuration Script - Please pay attemption at outputs for valuabe information"
 
 #Environment Var (Such as ServerAddress and sheeet)
-HOST=http://localhost
-PORT=8001
-ADDRESS="$HOST:$PORT"
+KONG_HOST="http://localhost"
+KONG_PORT="8001"
+KONG_ADDRESS="$KONG_HOST:$KONG_PORT"
 
-#Resource
-RESOURCE="bookmanager"
-RESOURCE_TYPE="service"
-RESOURCE_ADDRESS="http://book-manager:5000/"
-
-#Plugins Variables
-#Key-Auth
 KEY_AUTH='key-auth'
-KEY_AUTH_CLIENT='client'
-KEY_AUTH_KEY='20644b66-36a8-4c46-9460-5a87247a3e3d'
-
-#TCP-LOG
 TCP_LOG='tcp-log'
-TCP_LOG_HOST='127.0.0.1'
-TCP_LOG_PORT='9999'
 
 #AWS-Lambda
 AWS_LAMBDA='aws-lambda'
@@ -39,52 +26,97 @@ REQUEST_TRANSFORMER='request-transformer-advanced'
 #Rate-Limiting
 RATE_LIMITING='rate-limiting-advanced'
 
-#Resource Creation
-echo "\nRegistering Resource: ${RESOURCE}"
-curl -i -X POST --url $ADDRESS/${RESOURCE_TYPE}s/ --data "name=${RESOURCE}" --data "url=${RESOURCE_ADDRESS}"
-curl -i -X POST --url $ADDRESS/${RESOURCE_TYPE}s/${RESOURCE}/routes/ --data 'methods[]=GET' --data 'paths[]=/desafio'
+resource_Create(){
+    RESOURCE_TYPE=$1
+    RESOURCE_NAME=$2
+    RESOURCE_URL=$3
 
-####################################
-echo "\nConfiguring Plugins for ${RESOURCE}"
+    echo "Registering Resource ${RESOURCE_NAME} :  ${RESOURCE_TYPE}"
+    curl -i -X POST --url "$KONG_ADDRESS/${RESOURCE_TYPE}s" --data "name=${RESOURCE_NAME}" --data "url=${RESOURCE_URL}"
+}
 
-URL="${ADDRESS}/${RESOURCE_TYPE}s/${RESOURCE}/plugins/"
+resource_ConfigurePaths(){
+    RESOURCE_TYPE=$1
+    RESOURCE_NAME=$2
 
-#Key Auth
-echo "\nRegister ${KEY_AUTH}"
-curl -i -X POST --url ${URL} \
---data "name=${KEY_AUTH}" \
---data 'config.hide_credentials=false'
+    RESOURCE_METHODS=$3
+    RESOURCE_PATHS=$4
 
-#TCP-LOG
-echo "\nRegister ${TCP_LOG}"
-curl -i -X POST --url ${URL} \
---data "name=${TCP_LOG}" \
---data "config.host=${TCP_LOG_HOST}" \
---data "config.port=${TCP_LOG_PORT}"
+    echo "Configuring ${RESOURCE_NAME} :  ${RESOURCE_TYPE}, adding routes: ${RESOURCE_PATHS}"
+    curl -i -X POST --url "$KONG_ADDRESS/${RESOURCE_TYPE}s/${RESOURCE_NAME}/routes" --data "methods[]=${RESOURCE_METHODS}" --data "paths[]=${RESOURCE_PATHS}"
+}
 
-#AWS-Lambda
-curl -i -X POST --url ${URL}
---data "name=aws-lambda" \
---data-urlencode "config.aws_key=${AWS_KEY}" \
---data-urlencode "config.aws_secret=${AWS_SECRET}" \
---data "config.aws_region=${AWS_REGION}" \
---data "config.function_name=${LAMBDA_FUNCTION_NAME}"
+keyAuth_registerResource(){
+    RESOURCE_TYPE=$1
+    RESOURCE_NAME=$2
 
-#ACL
-curl -i -X POST --url ${URL} \
---data "name=${ACL}"  \
---data "config.whitelist=${ACL_WHITELIST_GROUP}" \
---data "config.hide_groups_header=${ACL_HIDE_GROUPS_HEADER}"
+    URL="${KONG_ADDRESS}/${RESOURCE_TYPE}s/${RESOURCE_NAME}/plugins"
 
-#Request-Transformation
-curl -i -X POST --url ${URL} \
---data "name=${REQUEST_TRANSFORMER}"
+    echo "Register ${KEY_AUTH} to ${RESOURCE_NAME} : ${RESOURCE_TYPE}"
+    curl -i -X POST --url "${URL}" --data "name=${KEY_AUTH}" --data 'config.hide_credentials=false'
+}
 
-#Rate-Limiting
-curl -i -X POST --url ${URL} \
---data "name=${RATE_LIMITING}"
+keyAuth_registerConsumer(){
+    KEY_AUTH_CONSUMER=$1
 
-#KEY-AUTH Client Config
-echo "\nConfiguring Key-Auth Client"
-curl -i -X POST --url ${ADDRESS}/consumers/ --data "username=${KEY_AUTH_CLIENT}"
-curl -i -X POST --url ${ADDRESS}/consumers/${KEY_AUTH_CLIENT}/key-auth/ --data "key=${KEY_AUTH_KEY}"
+    echo "Configuring ${KEY_AUTH} for Client ${KEY_AUTH_CONSUMER}"
+    curl -i -X POST --url "${KONG_ADDRESS}/consumers" --data "username=${KEY_AUTH_CONSUMER}"
+}
+
+keyAuth_registerKey(){
+    KEY_AUTH_CONSUMER=$1
+    KEY_AUTH_KEY=$2
+
+    echo "Registering ${KEY_AUTH_CONSUMER} as Cosumer of ${KEY_AUTH}"
+    curl -i -X POST --url "${KONG_ADDRESS}/consumers/${KEY_AUTH_CONSUMER}/${KEY_AUTH}" --data "key=${KEY_AUTH_KEY}"
+}
+
+#keyAuth_removeKey(){
+#    KEY_AUTH_CONSUMER=$1
+#    KEY_AUTH_KEY=$2
+#
+#    echo "Deleting Key ${}"
+#    curl -X DELETE --url ${KONG_ADDRESS}/consumers/${KEY_AUTH_CONSUMER}/key-auth/{id}
+#}
+#keyAuth_removeKey 
+
+tcpLOG_registerResource(){        
+    RESOURCE_TYPE=$1
+    RESOURCE_NAME=$2
+    TCP_LOG_HOST=$3
+    TCP_LOG_PORT=$4
+
+    URL="${KONG_ADDRESS}/${RESOURCE_TYPE}s/${RESOURCE_NAME}/plugins"
+
+    echo "Register ${TCP_LOG} For ${RESOURCE_NAME} : ${RESOURCE_TYPE} - Logging into ${TCP_LOG_HOST}:${TCP_LOG_PORT}"
+    curl -i -X POST --url "${URL}" --data "name=${TCP_LOG}" --data "config.host=${TCP_LOG_HOST}" --data "config.port=${TCP_LOG_PORT}"
+}
+
+configure_AWSlambda(){
+    curl -i -X POST --url "${URL}" --data "name=aws-lambda" --data-urlencode "config.aws_key=${AWS_KEY}" --data-urlencode "config.aws_secret=${AWS_SECRET}" --data "config.aws_region=${AWS_REGION}" --data "config.function_name=${LAMBDA_FUNCTION_NAME}"
+}
+
+configure_ACL(){
+    curl -i -X POST --url "${URL}" --data "name=${ACL}" --data "config.whitelist=${ACL_WHITELIST_GROUP}" --data "config.hide_groups_header=${ACL_HIDE_GROUPS_HEADER}"   
+}
+
+configure_requestTransformation(){
+    curl -i -X POST --url "${URL}" --data "name=${REQUEST_TRANSFORMER}"
+}
+
+configure_rateLimiting(){
+    curl -i -X POST --url "${URL}" --data "name=${RATE_LIMITING}"
+}
+
+resource_Create "service" "bookmanager" "http://book-manager:5000/"
+sleep 5s
+resource_ConfigurePaths "service" "bookmanager" "GET" "/desafio"
+sleep 5s
+keyAuth_registerResource 'service' 'bookmanager'
+sleep 5s
+keyAuth_registerConsumer 'client'
+sleep 5s
+keyAuth_registerKey 'client' '' #Left intentionally blank - Kong will generate a Key
+sleep 5s
+tcpLOG_registerResource 'service' 'bookmanager' '127.0.0.1' '9999'
+sleep 5s
